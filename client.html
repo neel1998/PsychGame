@@ -1,0 +1,249 @@
+<html>
+<head>
+</head>
+<body>
+	<h2 align="center">Psych</h2>
+
+<div id = "head" style = "clear:left" >
+	<label>Name</label>
+	<input type="text" id="name"/>
+	<p> JOIN A ROOM</p>
+	<label>Room no.</label>
+	<input type="text" id="room"/>
+	<button onclick="join()" id = "join" >Join</button>
+	<p> OR CREATE A NEW ROOM </p>
+	<button onclick="create()" id = "create" >Create</button>
+	<br>
+</div>
+<div id = "player_names" style = "display: none">
+	<h3>Players:</h3>
+	<p id = "players"></p>
+</div>
+
+<h3 id = "waiting_text" style = "display:none">Waiting for other Players...</h3>
+
+<div id = "score_container" style = "display:none">
+	<h3> Scores So Far.. </h3>
+	<div id = "score_div"></div>
+</div>
+
+<button onclick="play()" id = "play" style = "display : none" >Play</button>
+<div>
+<div id = "question_div" style = "float:left; display: none">
+			<h2> Question </h2>
+			<h3 id = "question"></h3>
+			<textarea id = "answer"></textarea>
+			<button id = "submit_ans" onclick="submit()">submit</button>
+			<h3 id = "select_ans_heading" style = "display: none"> Select Your favourite Answer </h3>
+			<div id = "answer_options" style = "display : none">
+			</div>
+			<p id = "error_msg" style = "color : red; display : none"></p>
+</div>
+
+<!-- <textarea id = "text" style = "width : 100%; height : 150px;" ></textarea> -->
+
+<script type="text/javascript">
+		var client_socket = new WebSocket('WEB_SOCKET_URL');
+		var name = "";
+		var room;
+		var player_no;
+		var question_no = 0;
+		var player_names;
+		var scores ;
+		var waiting_text = document.getElementById("waiting_text");
+
+		//join existing room
+		function join() {
+			name = document.getElementById("name").value;
+			room = document.getElementById("room").value;
+			data = {
+				"name": name,
+				"room": room,
+				"type": "join"
+			};
+			document.getElementById("join").style.display = "none";
+			document.getElementById("create").style.display = "none";
+			document.getElementById("head").style.display = "none";
+			client_socket.send(JSON.stringify(data));
+		}
+
+		//create new room
+		function create(){
+			name = document.getElementById("name").value;
+			data = {
+				"name": name,
+				"type": "create"
+			};
+			document.getElementById("create").style.display = "none";
+			document.getElementById("join").style.display = "none";
+			document.getElementById("head").style.display = "none";
+			client_socket.send(JSON.stringify(data));
+			player_no = 0;
+			document.getElementById("card1").style.border = "1px solid red";
+		}
+
+		//start the round and get question
+		function play(){
+					data = {
+						"name" : name,
+						"room" : room,
+						"type" : "play",
+						"question_no" : question_no
+					};
+					client_socket.send(JSON.stringify(data));
+		}
+
+		//function to submit the answer player has written.
+		function submit() {
+				answer = document.getElementById("answer").value;
+				data = {
+					"type" : "answer",
+					"room" : room,
+					"q_no" : question_no - 1,
+					"answer" : answer,
+					"player_no" : player_no
+				};
+				client_socket.send(JSON.stringify(data));
+				document.getElementById("submit_ans").style.display = "none";
+				document.getElementById("answer").style.display = "none";
+				document.getElementById("select_ans_heading").style.display = "none";
+				document.getElementById("answer_options").style.display = "none";
+				waiting_text.style.display = "block";
+		}
+
+		//function to select one of the answers for the given question.
+		function select(id) {
+			if (id == player_no) {
+				document.getElementById("error_msg").style.display = "block";
+				document.getElementById("error_msg").style.color = "red";
+				document.getElementById("error_msg").innerHTML = "You cant select your own answer!!";
+			} else {
+				document.getElementById("error_msg").style.display = "block";
+				document.getElementById("error_msg").style.color = "green";
+				document.getElementById("error_msg").innerHTML = "You selected " + player_names[id] + "'s answer";
+				document.getElementById("answer_options").style.display = "none";
+				document.getElementById("select_ans_heading").style.display = "none";
+				waiting_text.style.display = "block";
+				data = {
+					"type" : "select",
+					"room" : room,
+					"q_no" : question_no - 1,
+					"p_no" : player_no,
+					"ans" : id
+				}
+				client_socket.send(JSON.stringify(data));
+			}
+		}
+
+
+		client_socket.onmessage = function(event){
+				var jsonObject = JSON.parse(event.data);
+				// document.getElementById("text").value += ( jsonObject.data + "\n");
+
+				//joined a room
+				if (jsonObject.type == "join") {
+						room = jsonObject.room;
+						player_no = jsonObject.player_no;
+						console.log("player no " + player_no);
+						document.title = "Psych room : " + room;
+				}
+
+				//created a room
+				else if ( jsonObject.type == "create" ) {
+						document.getElementById("play").style.display = "block";
+						room = jsonObject.room;
+						document.title = "Psych room : " + room;
+				}
+
+				//started the round
+				else if ( jsonObject.type == "play") {
+					document.getElementById("play").style.display = "none";
+					document.getElementById("score_container").style.display = "none";
+					// document.getElementById("player_names").style.display = "none";
+					console.log("question : ", jsonObject.data);
+					document.getElementById("question_div").style.display = "block";
+					document.getElementById("question").innerHTML = (jsonObject.q_no + 1) + ". " + jsonObject.data;
+					document.getElementById("submit_ans").style.display = "block";
+					document.getElementById("answer").style.display = "block";
+					document.getElementById("answer").value	= "";
+					document.getElementById("error_msg").style.display = "none";
+					waiting_text.style.display = "none";
+					// document.getElementById("cards").value = cards.slice(0,5);
+					question_no = jsonObject.q_no + 1;
+				}
+
+				//display the submitted answers
+				else if (jsonObject.type == "select_answer") {
+						var answers = jsonObject.answers;
+						var ans_idx = jsonObject.answers_idx;
+
+						document.getElementById("select_ans_heading").style.display = "block";
+						var ans_div = document.getElementById("answer_options");
+						ans_div.style.display = "block";
+            var q_no = jsonObject.q_no;
+						ans_div.innerHTML = "";
+						for (let x = 0; x < answers.length; x ++) {
+							let option = document.createElement('button');
+							option.innerHTML = answers[x];
+							option.style.margin = "10px"
+							option.id = ans_idx[x]
+							option.addEventListener('click', function() {
+    							select(option.id);
+							}, false);
+							ans_div.appendChild(option);
+							let break_element = document.createElement('br');
+							ans_div.appendChild(break_element);
+						}
+						waiting_text.style.display = "none";
+
+				}
+
+				//show player names
+				else if (jsonObject.type == "new_player") {
+					 player_names = jsonObject.players;
+					 document.getElementById("player_names").style.display = "block";
+					 document.getElementById("players").innerHTML = player_names.join(",");
+				}
+
+				else if (jsonObject.type = "score") {
+					waiting_text.style.display = "none";
+					document.getElementById("question_div").style.display = "none";
+					document.getElementById("score_container").style.display = "block";
+					if (player_no == 0) {
+						document.getElementById("play").style.display = "block";
+					}
+					scores = jsonObject.scores;
+
+					selected_ans = jsonObject.selected_ans;
+					selected_ans_idx = jsonObject.selected_ans_idx;
+
+					score_div = document.getElementById("score_div");
+					score_div.innerHTML = "";
+
+				  var temp = "";
+					for (let x = 0; x < scores.length; x++) {
+						if (selected_ans[x] == player_no) {
+							temp += player_names[selected_ans_idx[x]] + ", "
+						}
+					}
+					if (temp.length == 0) {
+						temp = "no one, ";
+					}
+					let p = document.createElement('p');
+					p.style.color = "blue";
+					p.innerHTML = temp.slice(0,-2) + " selected your answer"
+					score_div.appendChild(p);
+
+					for (let x = 0; x < scores.length; x++) {
+						let s = player_names[x] + " => " + scores[x];
+						let p = document.createElement('p');
+						p.innerHTML = s;
+						score_div.appendChild(p);
+					}
+				}
+		}
+
+	</script>
+</body>
+
+</html>

@@ -1,0 +1,17 @@
+<html>
+<head>
+</head>
+<body>
+	<h2>Recieived Messages</h2>
+	<p id="msg"/>
+</body>
+<script type="text/javascript">
+	server_socket=new WebSocket('ws://localhost:8080');
+	server_socket.onopen=function(event){
+		alert("Socet connected succesfuly");
+	};
+	server_socket.onmessage=function(event){
+		console.log(event);
+	}
+</script>
+</html>

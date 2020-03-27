@@ -36,7 +36,7 @@ R_ANSW_IDX = []; //players index who submitted answers
 SELECTED_ANS = []; //player index whose answer is selected
 SELECTED_ANS_IDX = []; // player index who selected answer
 SCORES = []
-
+STARTED_GAMES = [];
 var question_text = fs.readFileSync("./questions.txt", "utf-8");
 
 // QUESTIONS = ['Do you like this game?','Where do you stay','What do you do in quarantine','Are you cool?','Who is noob?','Is Science 2 good course','Do you like hyderabad','how you doing?','are you dead?','Do you like this question?'];
@@ -68,30 +68,39 @@ s.on('connection',function(ws){
 		}
 		else if (data.type == "join") {
 				var i = data.room;
-				var l = ROOM[i].length
-				ROOM[i][l] = ws;
-				NAMES[i][l] = data.name;
-				SCORES[i][l] = 0;
+				if (STARTED_GAMES.indexOf(parseInt(i)) == -1) {
+					var l = ROOM[i].length
+					ROOM[i][l] = ws;
+					NAMES[i][l] = data.name;
+					SCORES[i][l] = 0;
+					var msg = {
+						"type" : "join",
+						"room" : i,
+						"data" : data.name + " joined room",
+						"player_no" : l,
+						"players" : NAMES[i]
+					};
+					// for (let x = 0; x < l+1; x ++ ) {
+					ROOM[i][l].send(JSON.stringify(msg));
+					// }
+					msg.type = "new_player";
+					for (let x = 0; x < l + 1; x ++ ) {
+						ROOM[i][x].send(JSON.stringify(msg));
+					}
+			}
+			else {
 				var msg = {
-					"type" : "join",
-					"room" : i,
-					"data" : data.name + " joined room",
-					"player_no" : l,
-					"players" : NAMES[i]
-				};
-				// for (let x = 0; x < l+1; x ++ ) {
-				ROOM[i][l].send(JSON.stringify(msg));
-				// }
-				msg.type = "new_player";
-				for (let x = 0; x < l + 1; x ++ ) {
-					ROOM[i][x].send(JSON.stringify(msg));
+					"type" : "game_started"
 				}
+				ws.send(JSON.stringify(msg));
+			}
 		}
 		else if (data.type == "play") {
 				var i = data.room;
 				var q_no = data.question_no
 				var l = ROOM[i].length
-				var n = NAMES[i][Math.floor(Math.random() * NAMES[i].length)]
+				var n = NAMES[i][Math.floor(Math.random() * NAMES[i].length)];
+				STARTED_GAMES.push(i);
 				var msg = {
 					"type" : "play",
 					"room" : i,

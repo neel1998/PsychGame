@@ -1,5 +1,28 @@
 <html>
 <head>
+	<link href='https://fonts.googleapis.com/css?family=Amaranth' rel='stylesheet'>
+<style>
+body {
+		background-color: #d6ebff;
+    font-family: 'Amaranth';font-size: 18px;
+		/* display: table-cell; */
+		/* vertical-align: middle; */
+		text-align: center;
+}
+
+/* html {
+    display: table;
+    margin: auto;
+} */
+
+.btn {
+	background :#002640;
+	color: #ffd500;
+	font-family: 'Amaranth';font-size: 16px;
+	padding : 7px;
+	margin : 7px;
+}
+</style>
 </head>
 <body>
 	<h2 align="center">Psych</h2>
@@ -7,12 +30,12 @@
 <div id = "head" style = "clear:left" >
 	<label>Name</label>
 	<input type="text" id="name"/>
-	<p> JOIN A ROOM</p>
+	<p><u> JOIN A ROOM </u></p>
 	<label>Room no.</label>
 	<input type="text" id="room"/>
-	<button onclick="join()" id = "join" >Join</button>
-	<p> OR CREATE A NEW ROOM </p>
-	<button onclick="create()" id = "create" >Create</button>
+	<button class = "btn" onclick="join()" id = "join" >Join</button>
+	<p><u> OR CREATE A NEW ROOM </u></p>
+	<button class = "btn" onclick="create()" id = "create" >Create</button>
 	<br>
 </div>
 <div id = "player_names" style = "display: none">
@@ -26,20 +49,21 @@
 	<h3> Scores So Far.. </h3>
 	<div id = "score_div"></div>
 </div>
-
-<button onclick="play()" id = "play" style = "display : none" >Play</button>
+<br>
+<button class = "btn" onclick="play()" id = "play" style = "display : none" >Play</button>
 <div>
-<div id = "question_div" style = "float:left; display: none">
+<div id = "question_div" style = "display: none; text-align: center">
 			<h2> Question </h2>
 			<h3 id = "question"></h3>
-			<textarea id = "answer"></textarea>
-			<button id = "submit_ans" onclick="submit()">submit</button>
+			<textarea id = "answer" style="text-align:center"></textarea>
+			<br>
+			<button class = "btn" id = "submit_ans" onclick="submit()">submit</button>
 			<h3 id = "select_ans_heading" style = "display: none"> Select Your favourite Answer </h3>
 			<div id = "answer_options" style = "display : none">
 			</div>
 			<p id = "error_msg" style = "color : red; display : none"></p>
 </div>
-
+<p id = "game_going_on_message" = "color : red; display : none">A Game is alredy going on in this room, Please join some other room</p>
 <!-- <textarea id = "text" style = "width : 100%; height : 150px;" ></textarea> -->
 
 <script type="text/javascript">
@@ -108,22 +132,22 @@
 				document.getElementById("answer").style.display = "none";
 				document.getElementById("select_ans_heading").style.display = "none";
 				document.getElementById("answer_options").style.display = "none";
-				waiting_text.style.display = "block";
+				waiting_text.style.display = "inline";
 		}
 
 		//function to select one of the answers for the given question.
 		function select(id) {
 			if (id == player_no) {
-				document.getElementById("error_msg").style.display = "block";
+				document.getElementById("error_msg").style.display = "inline";
 				document.getElementById("error_msg").style.color = "red";
 				document.getElementById("error_msg").innerHTML = "You cant select your own answer!!";
 			} else {
-				document.getElementById("error_msg").style.display = "block";
+				document.getElementById("error_msg").style.display = "inline";
 				document.getElementById("error_msg").style.color = "green";
 				document.getElementById("error_msg").innerHTML = "You selected " + player_names[id] + "'s answer";
 				document.getElementById("answer_options").style.display = "none";
 				document.getElementById("select_ans_heading").style.display = "none";
-				waiting_text.style.display = "block";
+				waiting_text.style.display = "inline";
 				data = {
 					"type" : "select",
 					"room" : room,
@@ -150,9 +174,12 @@
 
 				//created a room
 				else if ( jsonObject.type == "create" ) {
-						document.getElementById("play").style.display = "block";
+						document.getElementById("play").style.display = "inline";
 						room = jsonObject.room;
 						document.title = "Psych room : " + room;
+						document.getElementById("player_names").style.display = "inline";
+ 					 	document.getElementById("players").innerHTML = name;
+						waiting_text.style.display = "inline";
 				}
 
 				//started the round
@@ -161,10 +188,10 @@
 					document.getElementById("score_container").style.display = "none";
 					// document.getElementById("player_names").style.display = "none";
 					console.log("question : ", jsonObject.data);
-					document.getElementById("question_div").style.display = "block";
+					document.getElementById("question_div").style.display = "inline";
 					document.getElementById("question").innerHTML = (jsonObject.q_no + 1) + ". " + jsonObject.data;
-					document.getElementById("submit_ans").style.display = "block";
-					document.getElementById("answer").style.display = "block";
+					document.getElementById("submit_ans").style.display = "inline";
+					document.getElementById("answer").style.display = "inline";
 					document.getElementById("answer").value	= "";
 					document.getElementById("error_msg").style.display = "none";
 					waiting_text.style.display = "none";
@@ -177,21 +204,23 @@
 						var answers = jsonObject.answers;
 						var ans_idx = jsonObject.answers_idx;
 
-						document.getElementById("select_ans_heading").style.display = "block";
+						document.getElementById("select_ans_heading").style.display = "inline";
 						var ans_div = document.getElementById("answer_options");
 						ans_div.style.display = "block";
             var q_no = jsonObject.q_no;
 						ans_div.innerHTML = "";
+						let break_element = document.createElement('BR');
+						ans_div.appendChild(break_element);
 						for (let x = 0; x < answers.length; x ++) {
 							let option = document.createElement('button');
 							option.innerHTML = answers[x];
-							option.style.margin = "10px"
-							option.id = ans_idx[x]
+							option.id = ans_idx[x];
+							option.className = "btn";
 							option.addEventListener('click', function() {
     							select(option.id);
 							}, false);
 							ans_div.appendChild(option);
-							let break_element = document.createElement('br');
+							let break_element = document.createElement('BR');
 							ans_div.appendChild(break_element);
 						}
 						waiting_text.style.display = "none";
@@ -201,16 +230,17 @@
 				//show player names
 				else if (jsonObject.type == "new_player") {
 					 player_names = jsonObject.players;
-					 document.getElementById("player_names").style.display = "block";
+					 document.getElementById("player_names").style.display = "inline";
 					 document.getElementById("players").innerHTML = player_names.join(",");
+					 waiting_text.style.display = "inline";
 				}
 
 				else if (jsonObject.type = "score") {
 					waiting_text.style.display = "none";
 					document.getElementById("question_div").style.display = "none";
-					document.getElementById("score_container").style.display = "block";
+					document.getElementById("score_container").style.display = "inline";
 					if (player_no == 0) {
-						document.getElementById("play").style.display = "block";
+						document.getElementById("play").style.display = "inline";
 					}
 					scores = jsonObject.scores;
 

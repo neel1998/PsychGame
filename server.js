@@ -40,8 +40,7 @@ SCORES = []
 var question_text = fs.readFileSync("./questions.txt", "utf-8");
 
 // QUESTIONS = ['Do you like this game?','Where do you stay','What do you do in quarantine','Are you cool?','Who is noob?','Is Science 2 good course','Do you like hyderabad','how you doing?','are you dead?','Do you like this question?'];
-QUESTIONS = question_text.split("\n");
-
+QUESTIONS = question_text.slice(0,-1).split("\n");
 var can_play = 0;
 s.on('connection',function(ws){
 	ws.on('message',function(message){

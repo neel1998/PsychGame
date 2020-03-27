@@ -1,8 +1,8 @@
 const http = require('http');
 const fs = require('fs');
 
-var ip = '3.17.24.197';
-
+// var ip = '3.17.24.197';
+var ip = require('ip').address();
 
 http.createServer( function(request, response) {
 if (request.url == "/") {
@@ -36,7 +36,11 @@ R_ANSW_IDX = []; //players index who submitted answers
 SELECTED_ANS = []; //player index whose answer is selected
 SELECTED_ANS_IDX = []; // player index who selected answer
 SCORES = []
-QUESTIONS = ['Do you like this game?','Where do you stay','What do you do in quarantine','Are you cool?','Who is noob?','Is Science 2 good course','Do you like hyderabad','how you doing?','are you dead?','Do you like this question?'];
+
+var question_text = fs.readFileSync("./questions.txt", "utf-8");
+
+// QUESTIONS = ['Do you like this game?','Where do you stay','What do you do in quarantine','Are you cool?','Who is noob?','Is Science 2 good course','Do you like hyderabad','how you doing?','are you dead?','Do you like this question?'];
+QUESTIONS = question_text.split("\n");
 
 var can_play = 0;
 s.on('connection',function(ws){
@@ -88,11 +92,12 @@ s.on('connection',function(ws){
 				var i = data.room;
 				var q_no = data.question_no
 				var l = ROOM[i].length
+				var n = NAMES[i][Math.floor(Math.random() * NAMES[i].length)]
 				var msg = {
 					"type" : "play",
 					"room" : i,
 					"q_no" : q_no,
-					"data" : R_QUESTIONS[i][q_no]
+					"data" : R_QUESTIONS[i][q_no].replace("xxx", n)
 				};
 				R_ANSWERS[i][q_no] = [];
 				R_ANSW_IDX[i][q_no] = [];

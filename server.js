@@ -1,7 +1,7 @@
 const http = require('http');
 const fs = require('fs');
 
-var ip = require('ip').address();
+var ip = '3.17.24.197';
 
 
 http.createServer( function(request, response) {
@@ -18,7 +18,7 @@ if (request.url == "/") {
 	} else {
 		send404(response);
 	}
-}).listen(8000, '0.0.0.0');
+}).listen(3000);
 
 function send404(response) {
 	response.statusCode = 404;

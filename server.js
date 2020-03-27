@@ -68,7 +68,13 @@ s.on('connection',function(ws){
 		}
 		else if (data.type == "join") {
 				var i = data.room;
-				if (STARTED_GAMES.indexOf(parseInt(i)) == -1) {
+				if (typeof ROOM[parseInt(i)] == 'undefined') {
+					var msg = {
+						"type" : "error",
+						"msg" : "No such room exist"
+					}
+					ws.send(JSON.stringify(msg));
+				} else if (STARTED_GAMES.indexOf(parseInt(i)) == -1) {
 					var l = ROOM[i].length
 					ROOM[i][l] = ws;
 					NAMES[i][l] = data.name;
@@ -90,7 +96,8 @@ s.on('connection',function(ws){
 			}
 			else {
 				var msg = {
-					"type" : "game_started"
+					"type" : "error",
+					"msg" : "game already started in this room"
 				}
 				ws.send(JSON.stringify(msg));
 			}

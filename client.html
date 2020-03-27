@@ -63,7 +63,7 @@ body {
 			</div>
 			<p id = "error_msg" style = "color : red; display : none"></p>
 </div>
-<p id = "game_going_on_message" style = "color : red; display : none">A Game is alredy going on in this room, Please join some other room</p>
+<p id = "game_going_on_message" style = "color : red; display : none"></p>
 <!-- <textarea id = "text" style = "width : 100%; height : 150px;" ></textarea> -->
 
 <script type="text/javascript">
@@ -234,8 +234,9 @@ body {
 					 document.getElementById("players").innerHTML = player_names.join(",");
 					 waiting_text.style.display = "inline";
 				}
-				else if (jsonObject.type == "game_started") {
-						document.getElementById("game_going_on_message").style.display = "inline";
+				else if (jsonObject.type == "error") {
+					document.getElementById("game_going_on_message").style.display = "inline";
+					document.getElementById("game_going_on_message").innerHTML = jsonObject.msg;
 				}
 
 				else if (jsonObject.type = "score") {
